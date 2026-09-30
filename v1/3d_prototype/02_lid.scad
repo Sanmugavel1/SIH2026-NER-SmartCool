@@ -1,0 +1,1 @@
+W=300;D=210;H=185;lidH=24;color([.8,.8,.78])translate([0,0,H])cube([W,D,lidH]);color([.05,.3,.1])translate([12,12,H-4])cube([W-24,D-24,4]);

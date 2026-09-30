@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ColdTrace — Vaccine Cold Chain Monitor</title>
+<style>
+  :root{
+    --ice-950:#061620;
+    --ice-900:#0a2233;
+    --ice-800:#0f2e44;
+    --ice-700:#163f5c;
+    --ice-600:#1f5578;
+    --ice-100:#eaf5fb;
+    --frost:#bfe4f5;
+    --cyan:#4fd1e8;
+    --cyan-dim:#2a8fa3;
+    --good:#3ddc97;
+    --normal:#4fd1e8;
+    --bad:#ff5c6c;
+    --advisory:#ffb454;
+    --line:#1a3a52;
+    --font-display:'Space Grotesk',-apple-system,sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #0d2c40 0%, transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, #0a2438 0%, transparent 55%),
+      var(--ice-950);
+    color:var(--ice-100);
+    font-family:var(--font-display);
+    min-height:100vh;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  .wrap{max-width:1280px;margin:0 auto;padding:28px 24px 60px;}
+
+  /* Header */
+  header{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    padding-bottom:22px;border-bottom:1px solid var(--line);margin-bottom:24px;
+    flex-wrap:wrap;gap:16px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:40px;height:40px;border-radius:10px;
+    background:linear-gradient(135deg,var(--cyan),var(--ice-600));
+    display:flex;align-items:center;justify-content:center;
+    font-size:19px;box-shadow:0 0 24px rgba(79,209,232,.35);
+  }
+  .brand h1{font-size:19px;margin:0;letter-spacing:.3px;font-weight:700;}
+  .brand span{display:block;font-size:11px;color:var(--frost);opacity:.6;font-family:var(--font-mono);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+
+  .account{
+    display:flex;align-items:center;gap:14px;
+    background:var(--ice-900);border:1px solid var(--line);
+    padding:8px 16px 8px 8px;border-radius:100px;
+  }
+  .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#ffb454,#ff5c6c);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--ice-950);}
+  .account .who{font-size:12.5px;line-height:1.35;}
+  .account .who b{display:block;font-size:13.5px;}
+  .account .who small{opacity:.55;font-family:var(--font-mono);}
+  .dot-live{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 8px var(--good);animation:pulse 1.8s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+  /* Status banner */
+  .status-banner{
+    display:flex;align-items:center;gap:16px;
+    padding:18px 22px;border-radius:16px;margin-bottom:24px;
+    border:1px solid var(--line);
+    background:linear-gradient(90deg, var(--ice-900), var(--ice-800));
+    transition:all .4s;
+  }
+  .status-banner .icon{font-size:30px;}
+  .status-banner .txt b{font-size:20px;display:block;letter-spacing:.3px;}
+  .status-banner .txt span{font-size:12.5px;opacity:.65;font-family:var(--font-mono);}
+  .status-banner.good{border-color:rgba(61,220,151,.4);box-shadow:0 0 30px -10px rgba(61,220,151,.35);}
+  .status-banner.normal{border-color:rgba(79,209,232,.4);box-shadow:0 0 30px -10px rgba(79,209,232,.35);}
+  .status-banner.bad{border-color:rgba(255,92,108,.5);box-shadow:0 0 30px -10px rgba(255,92,108,.4);}
+  .status-banner.advisory{border-color:rgba(255,180,84,.45);box-shadow:0 0 30px -10px rgba(255,180,84,.4);}
+
+  /* Grid */
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px;}
+  .card{
+    background:var(--ice-900);border:1px solid var(--line);border-radius:16px;
+    padding:20px;position:relative;overflow:hidden;
+  }
+  .card h3{margin:0 0 4px;font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:var(--frost);opacity:.7;font-weight:600;}
+  .card .sub{font-size:11px;font-family:var(--font-mono);opacity:.45;margin-bottom:14px;}
+
+  .c-temp{grid-column:span 5;}
+  .c-hum{grid-column:span 3;}
+  .c-lid{grid-column:span 4;}
+  .c-chart{grid-column:span 8;}
+  .c-log{grid-column:span 4;}
+  .c-periph{grid-column:span 12;}
+
+  @media(max-width:900px){
+    .c-temp,.c-hum,.c-lid,.c-chart,.c-log,.c-periph{grid-column:span 12;}
+  }
+
+  .big-metric{display:flex;align-items:baseline;gap:8px;}
+  .big-metric .num{font-size:52px;font-weight:700;font-family:var(--font-mono);}
+  .big-metric .unit{font-size:20px;opacity:.55;}
+  .range-bar{height:8px;border-radius:5px;background:var(--ice-800);margin-top:16px;position:relative;overflow:hidden;}
+  .range-bar .fill{position:absolute;top:0;bottom:0;background:linear-gradient(90deg,#3ddc97,#4fd1e8,#ffb454,#ff5c6c);width:100%;opacity:.25;}
+  .range-bar .marker{position:absolute;top:-4px;width:3px;height:16px;background:#fff;border-radius:2px;box-shadow:0 0 8px #fff;transition:left .6s;}
+  .range-labels{display:flex;justify-content:space-between;font-size:10.5px;font-family:var(--font-mono);opacity:.4;margin-top:6px;}
+
+  .hum-ring{display:flex;justify-content:center;align-items:center;position:relative;height:130px;}
+  .hum-ring svg{transform:rotate(-90deg);}
+  .hum-ring .val{position:absolute;font-family:var(--font-mono);font-size:26px;font-weight:600;}
+
+  .lid-count{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .lid-count .num{font-size:44px;font-family:var(--font-mono);font-weight:700;color:var(--cyan);}
+  .lid-state{
+    display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-family:var(--font-mono);
+    padding:5px 10px;border-radius:8px;background:var(--ice-800);margin-top:10px;
+  }
+  .lid-state.open{color:var(--advisory);}
+  .lid-state.closed{color:var(--good);}
+  .btn-row{display:flex;gap:8px;margin-top:14px;}
+  .btn{
+    flex:1;background:var(--ice-800);border:1px solid var(--line);color:var(--ice-100);
+    padding:9px 10px;border-radius:9px;font-family:var(--font-mono);font-size:11.5px;cursor:pointer;
+    transition:.2s;
+  }
+  .btn:hover{background:var(--ice-700);border-color:var(--cyan-dim);}
+  .btn.danger:hover{border-color:var(--bad);color:var(--bad);}
+
+  canvas{width:100%;display:block;}
+
+  .log-list{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;}
+  .log-item{
+    display:flex;justify-content:space-between;font-size:12px;font-family:var(--font-mono);
+    padding:8px 10px;background:var(--ice-800);border-radius:8px;border-left:3px solid var(--ice-600);
+  }
+  .log-item.warn{border-left-color:var(--advisory);}
+  .log-item.crit{border-left-color:var(--bad);}
+  .log-item .t{opacity:.45;}
+
+  .periph-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;}
+  @media(max-width:900px){.periph-grid{grid-template-columns:repeat(2,1fr);}}
+  .periph{
+    background:var(--ice-800);border:1px solid var(--line);border-radius:12px;
+    padding:14px;text-align:center;
+  }
+  .periph .ic{font-size:24px;margin-bottom:6px;}
+  .periph .lbl{font-size:11px;font-family:var(--font-mono);opacity:.6;text-transform:uppercase;letter-spacing:.5px;}
+  .periph .state{font-size:13px;font-weight:600;margin-top:4px;}
+  .periph .state.on{color:var(--good);}
+  .periph .state.off{color:var(--frost);opacity:.4;}
+  .periph .state.alert{color:var(--bad);}
+
+  .storage-bar{height:6px;background:var(--ice-800);border-radius:4px;margin-top:8px;overflow:hidden;}
+  .storage-bar .fill{height:100%;background:var(--cyan);border-radius:4px;transition:width .4s;}
+
+  footer{margin-top:30px;text-align:center;font-size:11px;font-family:var(--font-mono);opacity:.35;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">🧊</div>
+      <div>
+        <h1>ColdTrace</h1>
+        <span>Vaccine Cold-Chain Monitor · ESP32 Node #01</span>
+      </div>
+    </div>
+    <div class="account">
+      <div class="avatar">BS</div>
+      <div class="who">
+        <b>Baranitharan S</b>
+        <small><span class="dot-live" style="display:inline-block;margin-right:5px;"></span>Device Connected</small>
+      </div>
+    </div>
+  </header>
+
+  <div class="status-banner normal" id="statusBanner">
+    <div class="icon" id="statusIcon">🟦</div>
+    <div class="txt">
+      <b id="statusText">NORMAL — Vaccine payload within safe range</b>
+      <span id="statusSub">Last synced just now · Auto-refresh every 3s</span>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <div class="card c-temp">
+      <h3>Temperature</h3>
+      <div class="sub">DS18B20 · Box interior</div>
+      <div class="big-metric"><span class="num" id="tempVal">4.2</span><span class="unit">°C</span></div>
+      <div class="range-bar"><div class="fill"></div><div class="marker" id="tempMarker" style="left:38%"></div></div>
+      <div class="range-labels"><span>0°C</span><span>2–8°C safe</span><span>12°C</span></div>
+    </div>
+
+    <div class="card c-hum">
+      <h3>Humidity</h3>
+      <div class="sub">DHT22</div>
+      <div class="hum-ring">
+        <svg width="130" height="130">
+          <circle cx="65" cy="65" r="54" stroke="#163f5c" stroke-width="10" fill="none"/>
+          <circle id="humArc" cx="65" cy="65" r="54" stroke="#4fd1e8" stroke-width="10" fill="none"
+            stroke-linecap="round" stroke-dasharray="339" stroke-dashoffset="120"/>
+        </svg>
+        <div class="val" id="humVal">54%</div>
+      </div>
+    </div>
+
+    <div class="card c-lid">
+      <h3>Lid Activity</h3>
+      <div class="sub">Reed switch / IR pair</div>
+      <div class="lid-count">
+        <div>
+          <div class="num" id="lidCount">7</div>
+          <div style="font-size:11px;opacity:.5;font-family:var(--font-mono);">opens today</div>
+        </div>
+        <div class="lid-state closed" id="lidState">🔒 CLOSED</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="simulateLidOpen()">Simulate Open</button>
+        <button class="btn danger" onclick="resetLidCount()">Reset</button>
+      </div>
+    </div>
+
+    <div class="card c-chart">
+      <h3>Temperature Trend</h3>
+      <div class="sub">Last 30 readings · live simulation</div>
+      <canvas id="tempChart" height="150"></canvas>
+    </div>
+
+    <div class="card c-log">
+      <h3>Event Log</h3>
+      <div class="sub">Auto-recorded · stored to onboard memory</div>
+      <div class="log-list" id="logList"></div>
+    </div>
+
+    <div class="card c-periph">
+      <h3>Peripheral Status</h3>
+      <div class="sub">Live state of all connected modules on ESP32</div>
+      <div class="periph-grid">
+        <div class="periph"><div class="ic">🔊</div><div class="lbl">Buzzer</div><div class="state off" id="pBuzzer">Idle</div></div>
+        <div class="periph"><div class="ic">🟢</div><div class="lbl">LED — Good</div><div class="state off" id="pLedGood">Off</div></div>
+        <div class="periph"><div class="ic">🟡</div><div class="lbl">LED — Advisory</div><div class="state off" id="pLedAdv">Off</div></div>
+        <div class="periph"><div class="ic">🔴</div><div class="lbl">LED — Alert</div><div class="state off" id="pLedAlert">Off</div></div>
+        <div class="periph"><div class="ic">🔋</div><div class="lbl">Charging (TP4056)</div><div class="state on" id="pCharge">87% · Trickle</div></div>
+        <div class="periph"><div class="ic">🖥️</div><div class="lbl">I2C LCD</div><div class="state on" id="pLcd">Updating</div></div>
+      </div>
+      <div style="margin-top:16px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-family:var(--font-mono);opacity:.6;">
+          <span>Onboard log memory</span><span id="memPct">31%</span>
+        </div>
+        <div class="storage-bar"><div class="fill" id="memFill" style="width:31%"></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>ColdTrace Dashboard · simulated live feed — replace with WebSocket/HTTP feed from ESP32 for deployment</footer>
+</div>
+
+<script>
+let tempHistory = [];
+let lidCount = 7;
+let logEntries = [];
+let memPct = 31;
+
+function addLog(msg, level='info'){
+  const time = new Date().toLocaleTimeString();
+  logEntries.unshift({msg, time, level});
+  if(logEntries.length > 40) logEntries.pop();
+  renderLog();
+}
+
+function renderLog(){
+  const list = document.getElementById('logList');
+  list.innerHTML = logEntries.map(e =>
+    `<div class="log-item ${e.level==='crit'?'crit':e.level==='warn'?'warn':''}">
+      <span>${e.msg}</span><span class="t">${e.time}</span>
+    </div>`
+  ).join('');
+}
+
+function setStatus(level, text, sub){
+  const banner = document.getElementById('statusBanner');
+  banner.className = 'status-banner ' + level;
+  document.getElementById('statusText').innerText = text;
+  document.getElementById('statusSub').innerText = sub;
+  const icons = {good:'🟢', normal:'🟦', bad:'🔴', advisory:'🟡'};
+  document.getElementById('statusIcon').innerText = icons[level];
+
+  document.getElementById('pLedGood').className = 'state ' + (level==='good' ? 'on':'off');
+  document.getElementById('pLedGood').innerText = level==='good' ? 'On' : 'Off';
+  document.getElementById('pLedAdv').className = 'state ' + (level==='advisory' ? 'on':'off');
+  document.getElementById('pLedAdv').innerText = level==='advisory' ? 'On' : 'Off';
+  document.getElementById('pLedAlert').className = 'state ' + (level==='bad' ? 'alert':'off');
+  document.getElementById('pLedAlert').innerText = level==='bad' ? 'On' : 'Off';
+  document.getElementById('pBuzzer').className = 'state ' + (level==='bad' ? 'alert':'off');
+  document.getElementById('pBuzzer').innerText = level==='bad' ? 'ALERT' : 'Idle';
+}
+
+function classify(temp){
+  if(temp >= 2 && temp <= 8) return {level:'good', text:'GOOD — Vaccine payload optimal', sub:'Temperature within 2–8°C cold-chain range'};
+  if(temp > 8 && temp <= 10) return {level:'advisory', text:'ADVISORY — Approaching upper limit', sub:'Check lid seal and ice packs soon'};
+  if(temp < 2 && temp >= 0) return {level:'advisory', text:'ADVISORY — Approaching lower limit', sub:'Risk of freezing, monitor closely'};
+  return {level:'bad', text:'BAD — Temperature out of safe range', sub:'Immediate action required — vaccine may be compromised'};
+}
+
+function updateTemp(){
+  const last = tempHistory.length ? tempHistory[tempHistory.length-1] : 4.2;
+  let next = last + (Math.random()-0.5)*1.1;
+  next = Math.max(-1, Math.min(13, next));
+  tempHistory.push(next);
+  if(tempHistory.length > 30) tempHistory.shift();
+
+  document.getElementById('tempVal').innerText = next.toFixed(1);
+  const pct = Math.max(0, Math.min(100, ((next+2)/16)*100));
+  document.getElementById('tempMarker').style.left = pct + '%';
+
+  const c = classify(next);
+  setStatus(c.level, c.text, c.sub + ' · ' + new Date().toLocaleTimeString());
+  if(c.level==='bad') addLog('Temperature breach: '+next.toFixed(1)+'°C', 'crit');
+  else if(c.level==='advisory' && Math.random()<0.3) addLog('Temperature drifting: '+next.toFixed(1)+'°C', 'warn');
+
+  drawChart();
+}
+
+function updateHumidity(){
+  const val = Math.round(45 + Math.random()*20);
+  document.getElementById('humVal').innerText = val + '%';
+  const circumference = 339;
+  const offset = circumference - (val/100)*circumference;
+  document.getElementById('humArc').style.strokeDashoffset = offset;
+}
+
+function drawChart(){
+  const canvas = document.getElementById('tempChart');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.clientWidth, h = 150;
+  canvas.width = w; canvas.height = h;
+  ctx.clearRect(0,0,w,h);
+
+  // safe zone band
+  const yFor = t => h - ((t+2)/16)*h;
+  ctx.fillStyle = 'rgba(61,220,151,0.08)';
+  ctx.fillRect(0, yFor(8), w, yFor(2)-yFor(8));
+
+  if(tempHistory.length < 2) return;
+  ctx.beginPath();
+  ctx.strokeStyle = '#4fd1e8';
+  ctx.lineWidth = 2.5;
+  tempHistory.forEach((t,i)=>{
+    const x = (i/(29))*w;
+    const y = yFor(t);
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // gradient fill under line
+  const grad = ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,'rgba(79,209,232,0.25)');
+  grad.addColorStop(1,'rgba(79,209,232,0)');
+  ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath();
+  ctx.fillStyle = grad; ctx.fill();
+}
+
+function simulateLidOpen(){
+  lidCount++;
+  document.getElementById('lidCount').innerText = lidCount;
+  const state = document.getElementById('lidState');
+  state.className = 'lid-state open';
+  state.innerText = '🔓 OPEN';
+  addLog('Lid opened — count '+lidCount, 'warn');
+  setTimeout(()=>{
+    state.className = 'lid-state closed';
+    state.innerText = '🔒 CLOSED';
+    addLog('Lid closed', 'info');
+  }, 2200);
+  memPct = Math.min(100, memPct + 2);
+  document.getElementById('memFill').style.width = memPct+'%';
+  document.getElementById('memPct').innerText = memPct+'%';
+}
+
+function resetLidCount(){
+  lidCount = 0;
+  document.getElementById('lidCount').innerText = 0;
+  addLog('Lid counter reset by user', 'info');
+}
+
+// init
+addLog('Dashboard initialized', 'info');
+addLog('Device ESP32-Node01 connected', 'info');
+for(let i=0;i<15;i++){ tempHistory.push(4 + (Math.random()-0.5)*3); }
+updateTemp();
+updateHumidity();
+drawChart();
+
+setInterval(updateTemp, 3000);
+setInterval(updateHumidity, 4000);
+</script>
+</body>
+</html>

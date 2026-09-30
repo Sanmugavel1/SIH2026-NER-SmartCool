@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1050" viewBox="0 0 1500 1050">
+<style>
+text{font-family:Arial,sans-serif;fill:#172033}.title{font-size:30px;font-weight:bold}.h{font-size:19px;font-weight:bold}.t{font-size:15px}.pin{font-size:13px;fill:#4b5563}
+.box{fill:#fff;stroke:#334155;stroke-width:2}.esp{fill:#e0f2fe;stroke:#0369a1;stroke-width:3}.power{fill:#fef3c7;stroke:#d97706}.sensor{fill:#ecfdf5;stroke:#059669}.comm{fill:#f3e8ff;stroke:#7e22ce}.local{fill:#f1f5f9;stroke:#475569}
+.line{stroke:#475569;stroke-width:3;fill:none}.pwr{stroke:#dc2626}.gnd{stroke:#111827}.bus{stroke:#2563eb}
+</style>
+<text x="45" y="45" class="title">Cold-Chain Guardian — Sensor Integration / Prototype Wiring</text>
+<text x="45" y="72" class="t">ESP32-based architecture; GPIO/I²C/SPI/UART assignments are prototype-level and should be verified during hardware bring-up.</text>
+
+<rect x="560" y="400" width="380" height="230" rx="16" class="esp"/>
+<text x="665" y="440" class="h">ESP32 CONTROLLER</text>
+<text x="600" y="475" class="t">3V3 / 5V power • GND common</text>
+<text x="600" y="505" class="pin">GPIO 4  → DS18B20 #1 DATA</text>
+<text x="600" y="530" class="pin">GPIO 16 → DS18B20 #2 DATA</text>
+<text x="600" y="555" class="pin">I²C SDA 21 / SCL 22 → SHT31, DS3231, OLED</text>
+<text x="600" y="580" class="pin">GPIO 27 → Reed Switch</text>
+<text x="600" y="605" class="pin">GPIO 34 → Power / Battery / Current ADC</text>
+
+<!-- left sensors -->
+<rect x="45" y="140" width="300" height="105" rx="12" class="sensor"/><text x="70" y="175" class="h">DS18B20 #1 — Air Temp</text><text x="70" y="205" class="t">VDD→3V3 • GND→GND • DATA→GPIO4</text><text x="70" y="228" class="t">4.7 kΩ pull-up DATA→3V3</text>
+<rect x="45" y="275" width="300" height="105" rx="12" class="sensor"/><text x="70" y="310" class="h">DS18B20 #2 — Product Temp</text><text x="70" y="340" class="t">VDD→3V3 • GND→GND • DATA→GPIO16</text><text x="70" y="363" class="t">4.7 kΩ pull-up DATA→3V3</text>
+<rect x="45" y="410" width="300" height="105" rx="12" class="sensor"/><text x="70" y="445" class="h">SHT31 — Humidity</text><text x="70" y="475" class="t">VIN→3V3 • GND→GND</text><text x="70" y="498" class="t">SDA→GPIO21 • SCL→GPIO22</text>
+<rect x="45" y="545" width="300" height="105" rx="12" class="sensor"/><text x="70" y="580" class="h">Reed Switch — Lid</text><text x="70" y="610" class="t">One side→GPIO27 • other→GND</text><text x="70" y="633" class="t">INPUT_PULLUP; count open→close events</text>
+
+<!-- right -->
+<rect x="1120" y="120" width="320" height="105" rx="12" class="power"/><text x="1145" y="155" class="h">Isolated Mains Detector</text><text x="1145" y="185" class="t">Isolated digital output→GPIO input</text><text x="1145" y="208" class="t">Never connect mains directly to ESP32</text>
+<rect x="1120" y="255" width="320" height="105" rx="12" class="power"/><text x="1145" y="290" class="h">Compressor Current Sensor</text><text x="1145" y="320" class="t">Analog output→ADC GPIO34</text><text x="1145" y="343" class="t">Use isolated/appropriate sensor module</text>
+<rect x="1120" y="390" width="320" height="105" rx="12" class="local"/><text x="1145" y="425" class="h">DS3231 RTC</text><text x="1145" y="455" class="t">VCC→3V3 • GND→GND</text><text x="1145" y="478" class="t">SDA→21 • SCL→22</text>
+<rect x="1120" y="525" width="320" height="105" rx="12" class="local"/><text x="1145" y="560" class="h">OLED 0.96&quot;</text><text x="1145" y="590" class="t">VCC→3V3 • GND→GND</text><text x="1145" y="613" class="t">SDA→21 • SCL→22</text>
+<rect x="1120" y="660" width="320" height="105" rx="12" class="comm"/><text x="1145" y="695" class="h">GPS / GSM / LoRa</text><text x="1145" y="725" class="t">UART/serial interface; separate power</text><text x="1145" y="748" class="t">SIM800L requires suitable supply/current</text>
+<rect x="560" y="700" width="380" height="105" rx="12" class="local"/><text x="635" y="735" class="h">MicroSD Module</text><text x="600" y="765" class="t">SPI: SCK/MISO/MOSI/CS + 3V3/GND</text><text x="600" y="788" class="t">Offline CSV/JSON log → store-and-forward</text>
+<rect x="560" y="840" width="380" height="105" rx="12" class="power"/><text x="650" y="875" class="h">Battery Voltage Monitor</text><text x="600" y="905" class="t">Resistor divider → ADC GPIO34/other ADC</text><text x="600" y="928" class="t">Scale divider for ESP32 ADC safe range</text>
+
+<!-- lines -->
+<path d="M345 195 H500 V505 H560" class="line"/>
+<path d="M345 330 H480 V530 H560" class="line"/>
+<path d="M345 465 H455 V555 H560" class="bus"/>
+<path d="M345 600 H430 V580 H560" class="line"/>
+<path d="M1120 175 H1000 V470 H940" class="pwr"/>
+<path d="M1120 310 H1010 V605 H940" class="line"/>
+<path d="M1120 445 H1040 V555 H940" class="bus"/>
+<path d="M1120 580 H1020 V530 H940" class="bus"/>
+<path d="M1120 715 H1000 V430 H940" class="line"/>
+<path d="M750 700 V630" class="line"/>
+<path d="M750 840 V630" class="pwr"/>
+
+<text x="45" y="1010" class="t">Safety note: mains and compressor sensing must use proper isolation, fusing, creepage/clearance and rated modules. This diagram is for low-voltage prototype planning.</text>
+</svg>

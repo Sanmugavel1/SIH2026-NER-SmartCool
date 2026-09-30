@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ColdChain Guardian — Edge-IoT Dashboard</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--ink:#172033;--muted:#6b7280;--line:#e5eaf1;--good:#16a34a;--warn:#f59e0b;--bad:#dc2626;--blue:#2563eb}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--ink)}
+header{background:#102a43;color:#fff;padding:18px 28px;display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;font-size:21px} header small{opacity:.75}
+main{padding:22px;max-width:1400px;margin:auto}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 3px 12px #1720330a}
+.metric .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.metric .value{font-size:28px;font-weight:750;margin-top:6px}.status{font-weight:700;margin-top:4px}
+.good{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}.blue{color:var(--blue)}
+.section{margin-top:16px}.section h2{font-size:16px;margin:0 0 10px}
+.two{display:grid;grid-template-columns:2fr 1fr;gap:14px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.chart{height:260px;display:flex;align-items:end;gap:7px;padding:15px 8px 28px;border-left:1px solid var(--line);border-bottom:1px solid var(--line);position:relative}
+.bar{width:100%;border-radius:5px 5px 0 0;background:#60a5fa;min-height:5px}.axis{position:absolute;left:6px;right:6px;top:8px;color:var(--muted);font-size:11px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:9px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--muted)}
+.pill{display:inline-block;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:700;background:#eef2f7}
+.pill.good{background:#dcfce7}.pill.warn{background:#fef3c7}.pill.bad{background:#fee2e2}
+.account{display:flex;align-items:center;gap:12px}.avatar{width:44px;height:44px;border-radius:50%;background:#dbeafe;display:grid;place-items:center;font-weight:800;color:#1d4ed8}
+.alert{padding:11px;border-left:4px solid;border-radius:8px;margin:8px 0;background:#f8fafc;font-size:13px}
+.alert.good{border-color:var(--good)}.alert.warn{border-color:var(--warn)}.alert.bad{border-color:var(--bad)}
+footer{padding:20px 22px;color:var(--muted);font-size:12px;text-align:center}
+@media(max-width:900px){.grid,.three,.two{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div><h1>ColdChain Guardian</h1><small>Offline-First Edge-IoT Vaccine Cold-Chain Risk Monitoring</small></div>
+<div id="connection">● ONLINE</div></header>
+<main>
+<section class="grid">
+<div class="card metric"><div class="label">Air Temperature</div><div class="value" id="air">4.8 °C</div><div class="status good">GOOD</div></div>
+<div class="card metric"><div class="label">Product-Simulation Temp</div><div class="value" id="product">5.2 °C</div><div class="status good">NORMAL</div></div>
+<div class="card metric"><div class="label">Humidity</div><div class="value" id="humidity">61 %RH</div><div class="status good">NORMAL</div></div>
+<div class="card metric"><div class="label">Safe Holdover Time</div><div class="value" id="sht">02:41 h</div><div class="status blue">PREDICTED</div></div>
+</section>
+
+<section class="section two">
+<div class="card"><h2>Temperature Variation — Last 60 Minutes</h2><div class="chart" id="chart"><div class="axis">8°C upper limit · 2°C lower limit</div></div></div>
+<div class="card"><h2>Cold-Chain Status</h2>
+<div class="alert good"><b>GOOD</b> — Temperature is within +2 to +8 °C.</div>
+<div class="alert good"><b>NORMAL</b> — Humidity is within configured operating band.</div>
+<div class="alert warn"><b>ADVISORY</b> — Door was opened recently; monitor exposure time.</div>
+<div class="alert"><b>POWER</b> — Mains available · backup battery ready.</div>
+</div></section>
+
+<section class="section grid">
+<div class="card metric"><div class="label">Lid Open Count</div><div class="value" id="lid">7</div><div class="status warn">TODAY</div></div>
+<div class="card metric"><div class="label">Last Lid Event</div><div class="value" id="lastlid">14:38</div><div class="status">OPEN → CLOSED</div></div>
+<div class="card metric"><div class="label">Compressor Cycles</div><div class="value" id="comp">13</div><div class="status good">NORMAL</div></div>
+<div class="card metric"><div class="label">Battery</div><div class="value" id="battery">89 %</div><div class="status good">HEALTHY</div></div>
+</section>
+
+<section class="section three">
+<div class="card"><h2>Sensor Integration</h2><table>
+<tr><th>Sensor</th><th>Reading</th><th>Status</th></tr>
+<tr><td>DS18B20 #1 Air</td><td>4.8 °C</td><td><span class="pill good">Good</span></td></tr>
+<tr><td>DS18B20 #2 Product</td><td>5.2 °C</td><td><span class="pill good">Good</span></td></tr>
+<tr><td>SHT31</td><td>61 %RH</td><td><span class="pill good">Normal</span></td></tr>
+<tr><td>Reed Switch</td><td>Closed</td><td><span class="pill good">Normal</span></td></tr>
+<tr><td>Mains Detector</td><td>Available</td><td><span class="pill good">Good</span></td></tr>
+<tr><td>Compressor Current</td><td>1.42 A</td><td><span class="pill good">Normal</span></td></tr>
+</table></div>
+
+<div class="card"><h2>Account / Device</h2><div class="account"><div class="avatar">BS</div><div><b>Cold-Chain Operator</b><br><span style="color:#6b7280">Device: CC-BOX-001</span></div></div>
+<table style="margin-top:12px"><tr><td>Storage</td><td>Vaccine Carrier · 0.80 L</td></tr><tr><td>Target</td><td>+2 °C to +8 °C</td></tr><tr><td>Controller</td><td>ESP32</td></tr><tr><td>RTC</td><td>DS3231</td></tr><tr><td>Logging</td><td>MicroSD / Offline-first</td></tr></table></div>
+
+<div class="card"><h2>Alerts & Audit</h2>
+<div class="alert warn"><b>14:38</b> Lid opened for 18 s.</div>
+<div class="alert good"><b>14:38</b> Lid closed; temperature stable.</div>
+<div class="alert"><b>14:30</b> Data record written to local storage.</div>
+<div class="alert good"><b>14:00</b> Cloud synchronization successful.</div>
+</div></section>
+
+<section class="section card"><h2>System Architecture Status</h2>
+<table><tr><th>Layer</th><th>Current Prototype Plan</th><th>Status</th></tr>
+<tr><td>Data Acquisition</td><td>DS18B20 ×2, SHT31, reed, power, current, battery</td><td><span class="pill good">DESIGNED</span></td></tr>
+<tr><td>Edge Controller</td><td>ESP32 threshold/risk analysis + filtering</td><td><span class="pill good">DESIGNED</span></td></tr>
+<tr><td>Offline Storage</td><td>DS3231 timestamps + MicroSD store-and-forward</td><td><span class="pill good">PLANNED</span></td></tr>
+<tr><td>Prediction</td><td>SHT = (Tlimit − Tproduct) / dT/dt</td><td><span class="pill warn">NEXT STEP</span></td></tr>
+<tr><td>Connectivity</td><td>Wi-Fi / GSM / LoRa as prototype expansion</td><td><span class="pill warn">NEXT STEP</span></td></tr>
+<tr><td>Dashboard</td><td>Live status, trends, lid events, alerts, audit logs</td><td><span class="pill good">MOCKUP READY</span></td></tr>
+</table></section>
+</main>
+<footer>Prototype visualization for Project Work I · Values shown are simulated UI data until sensors are integrated.</footer>
+<script>
+const vals=[4.3,4.4,4.5,4.6,4.5,4.7,4.8,4.9,4.8,5.0,5.1,5.0,5.2,5.1,5.0,4.9,4.8,4.9,5.1,5.2,5.3,5.2,5.1,5.0,4.9,5.0,5.1,5.2,5.3,5.2,5.1,5.0,4.9,4.8,4.9,5.0,5.1,5.2,5.3,5.2,5.1,5.0,4.9,4.8,4.9,5.0,5.1,5.2,5.3,5.2,5.1,5.0,4.9,4.8,4.9,5.0,5.1,5.2,5.1,5.2];
+const chart=document.getElementById('chart'); vals.forEach(v=>{let b=document.createElement('div');b.className='bar';b.style.height=((v-2)/6*210+5)+'px';b.title=v+' °C';chart.appendChild(b)});
+setInterval(()=>{let a=4.5+Math.random()*1.2,p=4.8+Math.random()*1.0,h=58+Math.random()*8;
+document.getElementById('air').textContent=a.toFixed(1)+' °C';document.getElementById('product').textContent=p.toFixed(1)+' °C';document.getElementById('humidity').textContent=Math.round(h)+' %RH';},3000);
+</script>
+</body></html>

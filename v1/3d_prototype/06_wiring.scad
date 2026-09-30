@@ -1,0 +1,1 @@
+module cable(a,b,r=1.6){hull(){translate(a)sphere(r);translate(b)sphere(r);}} cable([0,0,0],[80,30,20]);cable([5,5,0],[80,40,20]);cable([10,0,0],[80,50,20]);

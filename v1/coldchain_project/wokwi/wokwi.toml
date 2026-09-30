@@ -1,0 +1,10 @@
+[wokwi]
+version = 1
+firmware = "build/cold_chain_esp32.ino.bin"
+elf = "build/cold_chain_esp32.ino.elf"
+
+# For WiFi in Wokwi's simulator, use network name "Wokwi-GUEST" (no password)
+# in the WIFI_SSID / WIFI_PASSWORD fields of cold_chain_esp32.ino when testing
+# purely in the simulator. Wokwi's virtual network gives internet access, so
+# HTTP POST to a public/tunnelled Flask URL (e.g. via ngrok) will work from
+# inside the simulation too.

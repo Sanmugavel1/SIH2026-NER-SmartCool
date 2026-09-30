@@ -1,0 +1,1 @@
+W=300;D=210;H=185;wall=10;difference(){cube([W,D,H]);translate([wall,wall,wall])cube([W-2*wall,D-2*wall,H-wall+1]);}

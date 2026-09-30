@@ -1,0 +1,22 @@
+COLD-CHAIN GUARDIAN — FIRST REVIEW PROGRESS / NEXT STEPS
+
+Completed today for review:
+1. Prototype enclosure concept created as editable OpenSCAD source.
+2. Sensor integration architecture converted into an editable SVG wiring diagram.
+3. Dashboard mockup created with temperature, humidity, SHT, lid count, compressor cycles, battery, power, alerts, account/device details and audit log.
+4. Existing presentation architecture retained: ESP32 + DS18B20 x2 + SHT31 + reed + power/current + DS3231 + MicroSD + communications + dashboard.
+5. Review-ready progression: Concept → system design → prototype visualization → sensor integration → dashboard → hardware bring-up → offline logging → SHT prediction → validation.
+
+Immediate hardware build order:
+A. ESP32 + DS18B20 #1/#2
+B. SHT31 + DS3231 + OLED on I2C
+C. Reed switch lid counter
+D. MicroSD offline logger
+E. Buzzer/LED alerts
+F. Battery voltage sensing
+G. Isolated power/compressor sensing
+H. GPS/GSM/LoRa expansion
+I. Dashboard API integration
+J. SHT prediction and validation
+
+Demo data should be explicitly labelled SIMULATED until real sensors are connected.

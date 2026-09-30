@@ -1,0 +1,1 @@
+$fn=48;for(y=[25,55])color([.55,.55,.55])translate([20,y,0])rotate([0,90,0])cylinder(h=55,r=4);color([.05,.4,.3])translate([90,20,0])cube([25,20,5]);color([.95,.95,.95])translate([90,55,0])cube([28,7,6]);

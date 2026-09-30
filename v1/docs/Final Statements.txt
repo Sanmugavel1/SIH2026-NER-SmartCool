@@ -1,0 +1,179 @@
+Design of an Offline-First Edge-IoT System for Cold-Chain Risk Detection and Equipment-Failure Prediction
+Problem statement
+
+Design an embedded cold-chain monitoring system that detects and predicts unsafe storage conditions for vaccines and temperature-sensitive medicines during storage and last-mile transportation, particularly in locations with unreliable electricity and network connectivity.
+
+Issue
+
+Conventional temperature loggers generally record temperature excursions after they occur. A more useful system should identify factors that may cause an excursion, including:
+
+Power failure
+Refrigerator door left open
+Increasing internal temperature
+Excessive compressor cycling
+Low backup-battery condition
+Improper placement of medical products
+Delay during transportation
+
+India’s eVIN framework already uses automated temperature loggers and mobile alerts. Therefore, the project should not merely duplicate temperature monitoring. It should focus on offline operation, predictive alerts, last-mile transport, power-failure resilience or low-cost deployment in smaller facilities.
+
+Significance
+
+Temperature monitoring is essential for maintaining appropriate vaccine-storage conditions. WHO guidance also recognises the need to prepare for equipment failure, power outages and temperature excursions during storage and transportation.
+
+Innovative concept
+
+Build a device using temperature probes, humidity, door-state sensing, mains-power detection and a thermal prediction model. The device can estimate the remaining safe-storage period and send alerts through GSM, LoRa or Bluetooth when internet connectivity is unavailable.
+
+Potential impact
+Reduced vaccine and medicine spoilage
+Faster response to refrigerator failures
+Reliable records for quality audits
+Improved last-mile healthcare delivery
+Reduced financial loss in primary health centres
+Scalable monitoring for blood banks and diagnostic laboratories
+
+Offline-First Cold-Chain Integrity Monitoring
+Recommended project title
+
+Design of an Offline-First Edge-IoT System for Cold-Chain Risk Detection and Equipment-Failure Prediction
+
+Why it ranks first
+
+This is the easiest project to complete reliably because the monitored variables—temperature, humidity, door status and power availability—can be reproduced and tested safely in a laboratory. It is derived directly from SIH MA1216, which calls for monitoring risks affecting temperature-sensitive products and generating timely alerts.
+
+Minimum viable prototype
+
+The device should:
+
+Continuously monitor refrigerator and product-zone temperature.
+Detect prolonged door opening and power failure.
+Store readings locally when the internet is unavailable.
+Produce buzzer, display and mobile alerts.
+Synchronise stored records when connectivity returns.
+Estimate whether temperature is rising toward an unsafe condition.
+Suggested hardware
+Component	Purpose
+ESP32	Main controller and Wi-Fi/BLE communication
+Two DS18B20 probes	Air and product-simulation temperature
+SHT31/DHT22	Humidity measurement
+Magnetic reed switch	Refrigerator-door monitoring
+DS3231 RTC	Accurate timestamping during network failure
+MicroSD module	Offline data storage
+Buzzer and OLED	Local warning and status
+Battery/UPS module	Operation during power failure
+Optional GSM/LoRa	Remote alerts without Wi-Fi
+
+Planning budget: ₹4,000–₹7,000, excluding the refrigerator and laptop.
+
+Ten-week action plan
+Weeks	Activity
+1	Define temperature limits, system architecture and test conditions
+2–3	Connect and calibrate sensors; implement local display and alarms
+4	Add RTC-based logging and microSD storage
+5	Develop Flask or MQTT dashboard
+6	Implement store-and-forward offline synchronisation
+7	Add temperature-rise prediction and alert prioritisation
+8	Conduct door-open, power-cut and communication-loss tests
+9	Run continuous 48–72-hour validation
+10	Final enclosure, documentation and demonstration
+Evaluation metrics
+Temperature-measurement error
+Alert-generation delay
+Battery-backup duration
+Percentage of records recovered after reconnection
+Number of false alarms
+Prediction time before a threshold excursion
+Societal impact
+
+The system could support small pharmacies, vaccine transport boxes, rural clinics, laboratories, dairy sellers and food-storage operators. The prototype should be positioned as an early-warning and record-keeping system, not as a certified medical device.
+
+Low-Cost Livestock Health and Behaviour Monitoring for Small Farmers
+Problem statement
+
+Develop an affordable wearable collar or ear-tag system that detects abnormal activity, feeding behaviour, body temperature and possible illness in cattle or goats and sends simple alerts to farmers.
+
+Issue
+
+Small farmers may identify illness, heat stress, reduced feeding or reproductive changes only after visible symptoms appear. Existing commercial livestock-wearable systems can be too expensive for farms with only a few animals.
+
+Significance
+
+FAO identifies animal health, livestock productivity, emergency response and smallholder resilience as important objectives for sustainable livestock development.
+
+Innovative concept
+
+Use an accelerometer, temperature sensor and microphone to estimate activity, resting time, rumination and abnormal behaviour. A LoRa gateway can serve an entire village, while alerts can be delivered through SMS or a Tamil mobile interface.
+
+Potential impact
+Earlier illness detection
+Reduced animal mortality
+Improved reproductive management
+Lower veterinary intervention delay
+Better productivity for small farmers
+Creation of locally relevant livestock datasets
+
+Low-Cost Livestock Health and Behaviour Monitoring
+Recommended project title
+
+Offline LoRa-Based Livestock Behaviour and Abnormality Alert System for Small Farmers
+
+Why it ranks third
+
+This project offers the strongest direct benefit to rural communities and has entrepreneurship potential. The hardware is manageable, but collecting reliable animal-behaviour data requires more time than cold-chain or machine monitoring. It should therefore be selected only when access to cattle, goats or a farm is available.
+
+Minimum viable prototype
+
+A collar-mounted unit should monitor:
+
+General movement and inactivity
+Standing, lying and walking patterns
+Possible restlessness
+Collar-zone temperature
+Prolonged reduction in activity
+Communication loss and battery status
+
+The first prototype should provide abnormal-behaviour alerts, not attempt to diagnose a specific disease.
+
+Suggested hardware
+Component	Purpose
+ESP32-C3 or nRF52	Low-power embedded controller
+MPU6050/ICM-20948	Movement and posture sensing
+Digital temperature sensor	Collar-zone temperature trend
+LoRa module	Long-range, low-power communication
+RTC	Time-based activity logging
+Rechargeable battery	Wearable power source
+Waterproof enclosure and collar	Field deployment
+Raspberry Pi/ESP32 gateway	Data reception and dashboard
+Optional microphone	Rumination or vocalisation research
+
+Planning budget: ₹5,000–₹10,000 for one collar and gateway.
+
+Fourteen-week action plan
+Weeks	Activity
+1	Select animal type and define only observable behaviours
+2–3	Assemble low-power collar prototype
+4	Develop accelerometer and temperature logging
+5	Implement LoRa communication and local storage
+6	Optimise sleep modes and battery consumption
+7–8	Collect labelled motion data through controlled movement tests
+9–10	Conduct limited supervised trials on one or more animals
+11	Extract activity level, posture and inactivity-duration features
+12	Implement rule-based or TinyML abnormality detection
+13	Measure false alerts, range and battery endurance
+14	Improve enclosure, dashboard and documentation
+Evaluation metrics
+Activity-classification accuracy
+False abnormality-alert rate
+Battery life
+LoRa communication range
+Packet-loss rate
+Wearability and enclosure stability
+Time required to identify prolonged inactivity
+Societal impact
+
+The project could help small farmers observe animals remotely, particularly during night hours or when animals graze away from the house. Its realistic benefit is earlier attention to unusual behaviour and reduced manual monitoring effort. Increased farmer income is a possible long-term outcome, but it should not be claimed without field evidence.
+
+Main feasibility condition
+
+Farmer cooperation, ethical handling and labelled field data are essential. Without farm access, this project becomes difficult to validate convincingly.

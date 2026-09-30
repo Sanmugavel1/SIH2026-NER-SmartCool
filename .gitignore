@@ -1,0 +1,17 @@
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+# Runtime databases (created on first run)
+*.db
+*.db-journal
+# OS / editor
+.DS_Store
+Thumbs.db
+.~lock.*#
+*.swp
+.vscode/
+.idea/
+# Local secrets
+.env

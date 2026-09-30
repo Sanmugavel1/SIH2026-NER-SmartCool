@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1200">
+<style>text{font-family:Arial;fill:#142033}.title{font-size:32px;font-weight:bold}.h{font-size:20px;font-weight:bold}.s{font-size:15px}.box{fill:white;stroke:#334155;stroke-width:2}.ctrl{fill:#dff4ff;stroke:#0369a1;stroke-width:3}.sens{fill:#e9fff5;stroke:#059669;stroke-width:2}.pow{fill:#fff4d6;stroke:#c87900;stroke-width:2}.com{fill:#f1e8ff;stroke:#7e22ce;stroke-width:2}.w{fill:none;stroke-width:4}</style>
+<text x="40" y="45" class="title">COLD-CHAIN GUARDIAN — COMPLETE HARDWARE INTEGRATION</text>
+<text x="40" y="75" class="s">Breadboard prototype → sensor validation → enclosure mounting → final compact hardware.</text>
+<rect x="680" y="430" width="420" height="270" rx="20" class="ctrl"/>
+<text x="790" y="470" class="h">ESP32 CONTROLLER</text>
+<text x="720" y="505" class="s">GPIO4 → DS18B20 Air</text><text x="720" y="535" class="s">GPIO16 → DS18B20 Product</text>
+<text x="720" y="565" class="s">I²C 21/22 → SHT31 + DS3231 + OLED</text>
+<text x="720" y="595" class="s">GPIO27 → Reed / Lid</text><text x="720" y="625" class="s">ADC → Battery / Current / Power</text>
+<text x="720" y="655" class="s">SPI → MicroSD</text>
+<rect x="45" y="140" width="390" height="105" rx="12" class="sens"/><text x="70" y="178" class="h">DS18B20 #1 — AIR TEMPERATURE</text><text x="70" y="210" class="s">3V3, GND, DATA → GPIO4 • 4.7k pull-up</text>
+<rect x="45" y="270" width="390" height="105" rx="12" class="sens"/><text x="70" y="308" class="h">DS18B20 #2 — PRODUCT TEMPERATURE</text><text x="70" y="340" class="s">3V3, GND, DATA → GPIO16</text>
+<rect x="45" y="400" width="390" height="105" rx="12" class="sens"/><text x="70" y="438" class="h">SHT31 — HUMIDITY</text><text x="70" y="470" class="s">3V3, GND, SDA→21, SCL→22</text>
+<rect x="45" y="530" width="390" height="105" rx="12" class="sens"/><text x="70" y="568" class="h">REED SWITCH — LID MONITOR</text><text x="70" y="600" class="s">GPIO27 + GND • count open/close + duration</text>
+<rect x="45" y="660" width="390" height="105" rx="12" class="pow"/><text x="70" y="698" class="h">POWER / BATTERY MONITOR</text><text x="70" y="730" class="s">Voltage divider → ADC • isolated mains input</text>
+<rect x="1350" y="140" width="390" height="105" rx="12" class="sens"/><text x="1375" y="178" class="h">OLED SSD1306</text><text x="1375" y="210" class="s">I²C 21/22 • local status display</text>
+<rect x="1350" y="270" width="390" height="105" rx="12" class="sens"/><text x="1375" y="308" class="h">DS3231 RTC</text><text x="1375" y="340" class="s">I²C 21/22 • timestamps</text>
+<rect x="1350" y="400" width="390" height="105" rx="12" class="sens"/><text x="1375" y="438" class="h">MICROSD MODULE</text><text x="1375" y="470" class="s">SPI • offline CSV/JSON logging</text>
+<rect x="1350" y="530" width="390" height="105" rx="12" class="com"/><text x="1375" y="568" class="h">GSM / GPS / LoRa — OPTIONAL</text><text x="1375" y="600" class="s">UART / dedicated interface</text>
+<rect x="1350" y="660" width="390" height="105" rx="12" class="pow"/><text x="1375" y="698" class="h">COMPRESSOR CURRENT SENSOR</text><text x="1375" y="730" class="s">Conditioned / isolated output → ADC</text>
+<rect x="500" y="820" width="300" height="105" rx="12" class="com"/><text x="545" y="858" class="h">BUZZER + LEDS</text><text x="545" y="890" class="s">GPIO outputs • GOOD/ADVISORY/BAD</text>
+<rect x="850" y="820" width="300" height="105" rx="12" class="pow"/><text x="890" y="858" class="h">POWER SUPPLY</text><text x="890" y="890" class="s">5V regulated + battery backup</text>
+<path d="M435 190 H570 V535 H680 M435 320 H550 V560 H680 M435 450 H530 V585 H680 M435 580 H510 V610 H680 M435 710 H520 V635 H680" class="w" stroke="#2563eb"/>
+<path d="M1350 190 H1190 V585 H1100 M1350 320 H1210 V585 H1100 M1350 450 H1230 V660 H1100 M1350 580 H1260 V610 H1100 M1350 710 H1240 V635 H1100" class="w" stroke="#16a34a"/>
+<path d="M800 820 V700 M1000 820 V700" class="w" stroke="#e11d48"/>
+<text x="45" y="1030" class="h">WIRE LEGEND</text><text x="45" y="1060" class="s">RED=VCC • BLACK=GND • YELLOW=Sensor data • GREEN=I²C • BLUE=Digital I/O • ORANGE=SPI/Analog</text>
+<text x="45" y="1100" class="s">Safety: mains/compressor sensing must use proper isolation and rated protection. Never connect mains directly to ESP32.</text>
+</svg>
