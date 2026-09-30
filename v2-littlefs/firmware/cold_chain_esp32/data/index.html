@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1422">
+<title>Cold Chain Monitor</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2343D9C8' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 2v20M4.9 7l14.2 10M4.9 17L19.1 7M9 4l3 2 3-2M9 20l3-2 3 2'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="frost" aria-hidden="true"></canvas>
+
+<!-- Boot splash: fades out when the first reading arrives -->
+<div id="splash" role="status">
+  <svg class="splash-flake" viewBox="0 0 100 100" aria-hidden="true">
+    <g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round">
+      <path d="M50 8v84M13.6 29l72.8 42M13.6 71l72.8-42"/>
+      <path d="M40 14l10 8 10-8M40 86l10-8 10 8M16 40l12 2-4-12M84 60l-12-2 4 12M16 60l12-2-4 12M84 40l-12 2 4-12"/>
+    </g>
+  </svg>
+  <div class="splash-title">Cold Chain Monitor</div>
+  <div class="splash-sub" id="splashMsg">Connecting to device…</div>
+</div>
+
+<div class="app">
+  <!-- ============ HEADER ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M4.9 7l14.2 10M4.9 17L19.1 7M9 4l3 2 3-2M9 20l3-2 3 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <div>
+        <h1>Cold Chain Monitor</h1>
+        <div class="sub"><span id="deviceId">—</span> · Vaccine storage 2–8 °C</div>
+      </div>
+    </div>
+    <div class="top-right">
+      <span class="chip" id="liveChip"><span class="dot"></span><span id="liveText">Connecting</span></span>
+      <span class="chip" id="wifiChip" title="Router WiFi">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="19.5" r="1.4" fill="currentColor"/></svg>
+        <span id="wifiText">—</span>
+      </span>
+      <span class="clock" id="clock" title="Device clock (RTC)">--:--:--</span>
+    </div>
+  </header>
+
+  <!-- ============ STATUS BANNER ============ -->
+  <section class="banner" id="banner" data-state="wait" aria-live="polite">
+    <div class="banner-icon" id="bannerIcon" aria-hidden="true"></div>
+    <div class="banner-text">
+      <div class="banner-title" id="bannerTitle">Waiting for first reading</div>
+      <div class="banner-sub" id="bannerSub">The unit samples its sensors every 5 seconds.</div>
+    </div>
+    <button class="btn btn-mute" id="muteBtn" hidden>Silence alarm</button>
+  </section>
+
+  <!-- ============ LIVE READINGS ============ -->
+  <section class="grid readings">
+    <!-- Core temperature gauge -->
+    <article class="card card-hero">
+      <header class="card-head">
+        <h2>Product temperature</h2>
+        <span class="tag">DS18B20 core probe</span>
+      </header>
+      <div class="gauge-wrap">
+        <svg class="gauge" id="gauge" viewBox="-8 -6 256 206" role="img" aria-labelledby="coreVal">
+          <defs>
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="4" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <path id="gTrack" class="g-track"/>
+          <path id="gSafe" class="g-safe"/>
+          <path id="gValue" class="g-value"/>
+          <g id="gTicks" class="g-ticks"></g>
+          <circle id="gKnob" class="g-knob" r="8" filter="url(#glow)"/>
+        </svg>
+        <div class="gauge-center">
+          <div class="big-num"><span id="coreVal">--.-</span><small>°C</small></div>
+          <div class="trend" id="coreTrend">&nbsp;</div>
+        </div>
+      </div>
+      <div class="gauge-safe">▬ shaded arc = safe zone 2–8 °C</div>
+      <div class="hero-foot">
+        <div><span class="k">Session min</span><span class="v" id="sMin">—</span></div>
+        <div><span class="k">Average</span><span class="v" id="sAvg">—</span></div>
+        <div><span class="k">Session max</span><span class="v" id="sMax">—</span></div>
+      </div>
+    </article>
+
+    <!-- Ambient thermometer -->
+    <article class="card">
+      <header class="card-head">
+        <h2>Box air temperature</h2>
+        <span class="tag">DHT22</span>
+      </header>
+      <div class="thermo-wrap">
+        <svg class="thermo" viewBox="0 0 60 200" aria-hidden="true">
+          <defs>
+            <clipPath id="tubeClip"><rect x="22" y="12" width="16" height="150" rx="8"/><circle cx="30" cy="172" r="18"/></clipPath>
+            <linearGradient id="mercury" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0" stop-color="#D0743A"/><stop offset="1" stop-color="#F2A365"/>
+            </linearGradient>
+          </defs>
+          <rect x="22" y="12" width="16" height="150" rx="8" class="tube"/>
+          <circle cx="30" cy="172" r="18" class="tube"/>
+          <g clip-path="url(#tubeClip)">
+            <rect id="mercuryBar" x="0" y="162" width="60" height="40" fill="url(#mercury)"/>
+            <circle cx="30" cy="172" r="18" fill="url(#mercury)"/>
+            <rect class="shine" x="25" y="14" width="3" height="146" rx="1.5"/>
+          </g>
+          <g class="thermo-ticks" id="thermoTicks"></g>
+        </svg>
+        <div class="thermo-read">
+          <div class="mid-num"><span id="ambVal">--.-</span><small>°C</small></div>
+          <p class="hint">Air inside the storage box. Swings faster than the product — the core probe is what decides safety.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- Humidity wave -->
+    <article class="card">
+      <header class="card-head">
+        <h2>Relative humidity</h2>
+        <span class="tag">DHT22</span>
+      </header>
+      <div class="hum-wrap">
+        <div class="vessel" id="vessel">
+          <svg viewBox="0 0 200 200" preserveAspectRatio="none" aria-hidden="true">
+            <g id="waveGroup">
+              <path class="wave w1" d="M0 10 Q25 0 50 10 T100 10 T150 10 T200 10 T250 10 T300 10 T350 10 T400 10 V400 H0Z"/>
+              <path class="wave w2" d="M0 10 Q25 20 50 10 T100 10 T150 10 T200 10 T250 10 T300 10 T350 10 T400 10 V400 H0Z"/>
+            </g>
+          </svg>
+          <div class="vessel-num"><span id="humVal">--</span><small>%</small></div>
+        </div>
+        <div class="hum-scale" id="humNote">—</div>
+      </div>
+    </article>
+
+    <!-- ML holdover -->
+    <article class="card">
+      <header class="card-head">
+        <h2>Safe holdover left</h2>
+        <span class="tag">ML model · via server</span>
+      </header>
+      <div class="hold-wrap">
+        <svg class="hourglass" id="hourglass" viewBox="0 0 64 96" aria-hidden="true">
+          <path d="M10 6h44M10 90h44M14 6c0 22 18 28 18 42S14 68 14 90M50 6c0 22-18 28-18 42s18 20 18 42" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path class="sand-top" d="M18 16h28c-2 12-10 18-14 26-4-8-12-14-14-26z"/>
+          <path class="sand-bot" d="M18 86h28c-3-10-10-14-14-16-4 2-11 6-14 16z"/>
+          <line class="sand-stream" x1="32" y1="44" x2="32" y2="80"/>
+        </svg>
+        <div>
+          <div class="mid-num"><span id="holdVal">--</span><small id="holdUnit">h</small></div>
+          <p class="hint" id="holdNote">Prediction arrives when the Flask server is reachable.</p>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ CHARTS ============ -->
+  <section class="grid charts">
+    <article class="card card-chart">
+      <header class="card-head">
+        <div>
+          <h2>Temperature history</h2>
+          <div class="legend">
+            <span><i class="sw sw-core"></i>Product (core)</span>
+            <span><i class="sw sw-amb"></i>Box air</span>
+            <span><i class="sw sw-safe"></i>Safe band 2–8 °C</span>
+          </div>
+        </div>
+        <div class="seg" role="tablist" aria-label="Time range">
+          <button role="tab" data-range="live" aria-selected="true">Live 10 min</button>
+          <button role="tab" data-range="trend" aria-selected="false">Trend 2 h</button>
+          <button id="tableBtn" class="seg-extra" aria-pressed="false">Table</button>
+        </div>
+      </header>
+      <div class="chart-box" id="tempBox">
+        <canvas id="tempChart"></canvas>
+        <div class="tip" id="tempTip" hidden></div>
+        <div class="empty" id="tempEmpty">Collecting readings…</div>
+      </div>
+      <div class="table-wrap" id="tableWrap" hidden>
+        <table>
+          <thead><tr><th>Time</th><th>Core °C</th><th>Air °C</th><th>RH %</th><th>Status</th></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="card card-chart-sm">
+      <header class="card-head"><h2>Humidity history</h2><span class="tag" id="humRangeTag">Live 10 min</span></header>
+      <div class="chart-box sm" id="humBox">
+        <canvas id="humChart"></canvas>
+        <div class="tip" id="humTip" hidden></div>
+      </div>
+      <div class="ring-row">
+        <div class="ring" id="rangeRing" style="--p:0">
+          <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="50"/><circle class="ring-fg" id="ringFg" cx="60" cy="60" r="50"/></svg>
+          <div class="ring-num"><span id="inRange">--</span><small>%</small></div>
+        </div>
+        <div class="ring-text">
+          <b>Time in safe range</b>
+          <span id="inRangeNote">Since the unit booted</span>
+          <span class="exc-count"><b id="excEvents">0</b> excursion events</span>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ============ SYSTEM HEALTH ============ -->
+  <section class="grid health">
+    <article class="card mini">
+      <div class="mini-head"><span class="ico">
+        <svg viewBox="0 0 24 24"><path d="M4 18h2v2H4zM9 14h2v6H9zM14 10h2v10h-2zM19 6h2v14h-2z" fill="currentColor" class="bars"/></svg></span>Router WiFi</div>
+      <div class="mini-val" id="hWifi">—</div>
+      <div class="mini-sub" id="hWifiSub">—</div>
+    </article>
+    <article class="card mini">
+      <div class="mini-head"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>Unit hotspot</div>
+      <div class="mini-val" id="hAp">—</div>
+      <div class="mini-sub" id="hApSub">—</div>
+    </article>
+    <article class="card mini">
+      <div class="mini-head"><span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="18" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="7" cy="7" r="1" fill="currentColor"/><circle cx="7" cy="17" r="1" fill="currentColor"/></svg></span>Flask server</div>
+      <div class="mini-val" id="hSrv">—</div>
+      <div class="mini-sub" id="hSrvSub">—</div>
+    </article>
+    <article class="card mini">
+      <div class="mini-head"><span class="ico"><svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 7v3M13 7v3" stroke="currentColor" stroke-width="2"/></svg></span>SD offline backlog</div>
+      <div class="mini-val" id="hSd">—</div>
+      <div class="mini-sub" id="hSdSub">—</div>
+    </article>
+    <article class="card mini">
+      <div class="mini-head"><span class="ico"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" stroke="currentColor" stroke-width="2"/></svg></span>On-board storage</div>
+      <div class="mini-val" id="hFs">—</div>
+      <div class="bar"><span id="fsBar"></span></div>
+      <div class="mini-sub" id="hFsSub">LittleFS</div>
+    </article>
+    <article class="card mini">
+      <div class="mini-head"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 9v4l3 2M9 2h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></span>Uptime</div>
+      <div class="mini-val" id="hUp">—</div>
+      <div class="mini-sub" id="hUpSub">—</div>
+    </article>
+  </section>
+
+  <!-- ============ EVENTS + DOWNLOADS ============ -->
+  <section class="grid bottom">
+    <article class="card">
+      <header class="card-head"><h2>Event log</h2><span class="tag">newest first</span></header>
+      <ol class="events" id="events"><li class="ev-empty">No events yet</li></ol>
+    </article>
+    <article class="card">
+      <header class="card-head"><h2>Download data</h2></header>
+      <p class="hint">CSV files straight from the unit — open in Excel for your report.</p>
+      <div class="downloads">
+        <a class="btn" href="/download/log.csv" download>On-board log (LittleFS)</a>
+        <a class="btn ghost" href="/download/log_old.csv" download>Older log (rotated)</a>
+        <a class="btn ghost" href="/download/backlog.csv" download>SD backlog (not yet uploaded)</a>
+      </div>
+      <dl class="facts">
+        <div><dt>Sampling</dt><dd>every 5 s (dashboard) · every 30 s (logged &amp; uploaded)</dd></div>
+        <div><dt>Open this page</dt><dd id="factUrl">—</dd></div>
+        <div><dt>Clock</dt><dd id="factClock">—</dd></div>
+        <div><dt>Free memory</dt><dd id="factHeap">—</dd></div>
+      </dl>
+    </article>
+  </section>
+
+  <footer class="foot">Served from the ESP32's LittleFS · no internet required</footer>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>

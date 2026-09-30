@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cold Chain Monitor — Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="ack-enabled" style="display:none;"></div>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">Cold Chain Monitor</div>
+    <div class="brand-sub">{{ device_id }} · admin</div>
+
+    <div class="nav-item active">Overview</div>
+    <div class="nav-item" onclick="document.getElementById('history').scrollIntoView({behavior:'smooth'})">History</div>
+    <div class="nav-item" onclick="document.getElementById('alerts').scrollIntoView({behavior:'smooth'})">Alerts</div>
+    <div class="nav-item" onclick="document.getElementById('predict').scrollIntoView({behavior:'smooth'})">Holdover predictor</div>
+    <div class="nav-item" onclick="document.getElementById('devices').scrollIntoView({behavior:'smooth'})">Devices</div>
+    <div class="nav-item" onclick="document.getElementById('users').scrollIntoView({behavior:'smooth'})">Users</div>
+
+    <div class="sidebar-footer">
+      <div class="who">{{ username }}</div>
+      <span class="role-tag">admin</span>
+      <div style="margin-top:14px;"><a href="{{ url_for('logout') }}">Sign out</a></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <h1>Admin overview</h1>
+        <div class="sub" id="last-source">Waiting for first reading…</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:18px;">
+        <div class="wifi-status"><span class="dot" id="wifi-dot"></span><span id="wifi-text">Connecting…</span></div>
+        <a class="btn secondary" href="/api/export?device_id={{ device_id }}">Export CSV</a>
+      </div>
+    </div>
+
+    <div class="grid grid-4" style="margin-bottom:16px;">
+      <div class="card">
+        <div class="readout-label">Core (product) temperature</div>
+        <div class="readout-value"><span id="core-temp">--</span><span class="unit">°C</span></div>
+        <span class="status-pill safe" id="status-pill">SAFE — WITHIN 2–8°C</span>
+      </div>
+      <div class="card">
+        <div class="readout-label">Ambient temperature</div>
+        <div class="readout-value"><span id="ambient-temp">--</span><span class="unit">°C</span></div>
+      </div>
+      <div class="card">
+        <div class="readout-label">Ambient humidity</div>
+        <div class="readout-value"><span id="ambient-hum">--</span><span class="unit">%</span></div>
+      </div>
+      <div class="card holdover-hero">
+        <div class="readout-label">Predicted safe holdover</div>
+        <div class="readout-value"><span id="holdover">--</span><span class="unit">hours</span></div>
+      </div>
+    </div>
+
+    <div class="grid grid-4" style="margin-bottom:16px;">
+      <div class="card"><div class="readout-label">Total readings logged</div>
+        <div class="readout-value" style="font-size:26px;"><span id="stat-total">--</span></div></div>
+      <div class="card"><div class="readout-label">Excursion events</div>
+        <div class="readout-value danger" style="font-size:26px;"><span id="stat-excursions">--</span></div></div>
+      <div class="card"><div class="readout-label">Rows synced from SD backlog</div>
+        <div class="readout-value warn" style="font-size:26px;"><span id="stat-backlog">--</span></div></div>
+      <div class="card"><div class="readout-label">Registered devices</div>
+        <div class="readout-value" style="font-size:26px;">1</div></div>
+    </div>
+
+    <div class="grid grid-2" style="margin-bottom:16px;" id="history">
+      <div class="card">
+        <h3>Core temperature — last readings</h3>
+        <canvas id="tempChart" height="90"></canvas>
+      </div>
+      <div class="card">
+        <h3>Ambient conditions</h3>
+        <canvas id="envChart" height="90"></canvas>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;" id="alerts">
+      <h3>Excursion alerts</h3>
+      <table>
+        <thead><tr><th>Time</th><th>Message</th><th>Status</th><th></th></tr></thead>
+        <tbody id="alerts-body"><tr><td colspan="4" style="color:var(--text-muted)">Loading…</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;" id="predict">
+      <h3>What-if holdover predictor</h3>
+      <div class="grid grid-4" style="align-items:end;">
+        <div class="field"><label>Core temp (°C)</label><input type="number" id="predict-core" value="5" step="0.1"></div>
+        <div class="field"><label>Ambient temp (°C)</label><input type="number" id="predict-ambient" value="22" step="0.1"></div>
+        <div class="field"><label>Ambient humidity (%)</label><input type="number" id="predict-hum" value="45" step="1"></div>
+        <button class="btn" id="predict-btn" style="height:38px;">Predict</button>
+      </div>
+      <div class="readout-label" style="margin-top:14px;">Predicted result</div>
+      <div class="readout-value safe" style="font-size:24px;"><span id="predict-result">—</span></div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card" id="devices">
+        <h3>Registered devices</h3>
+        <table>
+          <thead><tr><th>Device ID</th><th>Location</th><th>Safe range</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">{{ device_id }}</td><td>Main Lab</td><td class="mono">2.0°C – 8.0°C</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card" id="users">
+        <h3>User accounts</h3>
+        <table style="margin-bottom:14px;">
+          <thead><tr><th>Username</th><th>Role</th><th>Created</th></tr></thead>
+          <tbody id="users-body"><tr><td colspan="3" style="color:var(--text-muted)">Loading…</td></tr></tbody>
+        </table>
+
+        <form id="create-user-form">
+          <div class="grid grid-4" style="align-items:end;">
+            <div class="field"><label>Username</label><input type="text" id="new-username" required></div>
+            <div class="field"><label>Password</label><input type="password" id="new-password" required></div>
+            <div class="field"><label>Role</label>
+              <select id="new-role"><option value="user">user</option><option value="admin">admin</option></select>
+            </div>
+            <button class="btn" type="submit" style="height:38px;">Create account</button>
+          </div>
+          <div id="user-form-msg" style="font-size:12.5px; margin-top:6px;"></div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>window.DEVICE_ID = "{{ device_id }}";</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
