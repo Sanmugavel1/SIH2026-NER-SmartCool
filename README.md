@@ -9,7 +9,7 @@
 | **Theme** | Agriculture, FoodTech & Rural Development |
 | **Category** | Hardware |
 | **Final presentation** | [`presentation/NER-SmartCool_SIH26210_INVICTUS_Final.pdf`](presentation/NER-SmartCool_SIH26210_INVICTUS_Final.pdf) ([.pptx](presentation/NER-SmartCool_SIH26210_INVICTUS_Final.pptx)) |
-| **Solution video** | _link to be added_ |
+| **Solution video** | [▶ Watch on YouTube](https://youtu.be/017PUNBQ1N0) |
 
 ---
 
